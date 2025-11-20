@@ -3,6 +3,7 @@ const Patient = require('../models/patientModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 
+// Filter allowed fields
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
   Object.keys(obj).forEach((el) => {
@@ -11,22 +12,17 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-const mapFullName = (body) => {
-  if (body.fullName) body.name = body.fullName;
-  return body;
-};
-
 // Get all doctors
 exports.getAllDoctors = catchAsync(async (req, res, next) => {
   const doctors = await Doctor.find().populate(
     'patients',
-    'name email phone patientDisease'
+    'name email phone patientDisease',
   );
 
   res.status(200).json({
     status: 'success',
     results: doctors.length,
-    data: { doctors }
+    data: { doctors },
   });
 });
 
@@ -34,50 +30,66 @@ exports.getAllDoctors = catchAsync(async (req, res, next) => {
 exports.getMe = catchAsync(async (req, res, next) => {
   const doctor = await Doctor.findById(req.user._id).populate({
     path: 'patients',
-    select: 'name email phone patientDisease photo'
+    select: 'name email phone patientDisease photo',
   });
 
   if (!doctor) return next(new AppError('Doctor not found', 404));
 
   res.status(200).json({
     status: 'success',
-    data: { doctor }
+    data: { doctor },
   });
 });
 
-// Update doctor profile (except password)
 exports.updateMe = catchAsync(async (req, res, next) => {
   if (req.body.password || req.body.passwordConfirm) {
     return next(
       new AppError(
         'This route is not for password updates. Please use /updateMyPassword.',
-        400
-      )
+        400,
+      ),
     );
   }
 
-  mapFullName(req.body);
-
   const filteredBody = filterObj(
     req.body,
-    'name',
+    'fullName',
     'clinicName',
     'email',
     'phone',
     'photo',
     'location',
-    'rate'
+    'rate',
   );
 
-  const updatedDoctor = await Doctor.findByIdAndUpdate(
-    req.user._id,
-    filteredBody,
-    { new: true, runValidators: true }
-  );
+  if (filteredBody.location) {
+    if (
+      filteredBody.location.type !== 'Point' ||
+      !Array.isArray(filteredBody.location.coordinates) ||
+      filteredBody.location.coordinates.length !== 2
+    ) {
+      return next(
+        new AppError(
+          'Invalid location format. Must be { type: "Point", coordinates: [lng, lat] }',
+          400,
+        ),
+      );
+    }
+  }
+
+  const doctor = await Doctor.findByIdAndUpdate(req.user._id, filteredBody, {
+    new: true,
+    runValidators: true,
+    context: 'query',
+  });
+
+  if (!doctor) {
+    return next(new AppError('Doctor not found', 404));
+  }
 
   res.status(200).json({
     status: 'success',
-    data: { doctor: updatedDoctor }
+    data: { doctor },
   });
 });
 
@@ -87,20 +99,20 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   res.status(204).json({ status: 'success', data: null });
 });
 
-// Add patient to doctor (fixed: no passwordConfirm issue)
+// Add patient to doctor
 exports.addPatientToDoctor = catchAsync(async (req, res, next) => {
   const { patientId } = req.body;
 
   const doctor = await Doctor.findByIdAndUpdate(
     req.user._id,
-    { $addToSet: { patients: patientId } }, // ensures no duplicates
-    { new: true }
+    { $addToSet: { patients: patientId } },
+    { new: true },
   );
 
   const patient = await Patient.findByIdAndUpdate(
     patientId,
     { $addToSet: { doctors: req.user._id } },
-    { new: true }
+    { new: true },
   );
 
   if (!doctor || !patient)
@@ -109,7 +121,7 @@ exports.addPatientToDoctor = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     message: 'Patient added successfully',
-    data: { doctor }
+    data: { doctor },
   });
 });
 
@@ -120,13 +132,13 @@ exports.removePatientFromDoctor = catchAsync(async (req, res, next) => {
   const doctor = await Doctor.findByIdAndUpdate(
     req.user._id,
     { $pull: { patients: patientId } },
-    { new: true }
+    { new: true },
   );
 
   const patient = await Patient.findByIdAndUpdate(
     patientId,
     { $pull: { doctors: req.user._id } },
-    { new: true }
+    { new: true },
   );
 
   if (!doctor || !patient)
@@ -134,7 +146,7 @@ exports.removePatientFromDoctor = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Patient removed successfully'
+    message: 'Patient removed successfully',
   });
 });
 
@@ -142,7 +154,7 @@ exports.removePatientFromDoctor = catchAsync(async (req, res, next) => {
 exports.getMyPatients = catchAsync(async (req, res, next) => {
   const doctor = await Doctor.findById(req.user._id).populate(
     'patients',
-    'name email phone patientDisease'
+    'name email phone patientDisease',
   );
 
   if (!doctor) return next(new AppError('Doctor not found', 404));
@@ -150,6 +162,6 @@ exports.getMyPatients = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     results: doctor.patients.length,
-    data: { patients: doctor.patients }
+    data: { patients: doctor.patients },
   });
 });
