@@ -16,13 +16,13 @@ const filterObj = (obj, ...allowedFields) => {
 exports.getAllDoctors = catchAsync(async (req, res, next) => {
   const doctors = await Doctor.find().populate(
     'patients',
-    'name email phone patientDisease',
+    'name email phone patientDisease'
   );
 
   res.status(200).json({
     status: 'success',
     results: doctors.length,
-    data: { doctors },
+    data: { doctors }
   });
 });
 
@@ -30,14 +30,14 @@ exports.getAllDoctors = catchAsync(async (req, res, next) => {
 exports.getMe = catchAsync(async (req, res, next) => {
   const doctor = await Doctor.findById(req.user._id).populate({
     path: 'patients',
-    select: 'name email phone patientDisease photo',
+    select: 'name email phone patientDisease photo'
   });
 
   if (!doctor) return next(new AppError('Doctor not found', 404));
 
   res.status(200).json({
     status: 'success',
-    data: { doctor },
+    data: { doctor }
   });
 });
 
@@ -46,8 +46,8 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     return next(
       new AppError(
         'This route is not for password updates. Please use /updateMyPassword.',
-        400,
-      ),
+        400
+      )
     );
   }
 
@@ -59,7 +59,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     'phone',
     'photo',
     'location',
-    'rate',
+    'rate'
   );
 
   if (filteredBody.location) {
@@ -71,8 +71,8 @@ exports.updateMe = catchAsync(async (req, res, next) => {
       return next(
         new AppError(
           'Invalid location format. Must be { type: "Point", coordinates: [lng, lat] }',
-          400,
-        ),
+          400
+        )
       );
     }
   }
@@ -80,7 +80,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   const doctor = await Doctor.findByIdAndUpdate(req.user._id, filteredBody, {
     new: true,
     runValidators: true,
-    context: 'query',
+    context: 'query'
   });
 
   if (!doctor) {
@@ -89,7 +89,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    data: { doctor },
+    data: { doctor }
   });
 });
 
@@ -105,14 +105,14 @@ exports.addPatientToDoctor = catchAsync(async (req, res, next) => {
 
   const doctor = await Doctor.findByIdAndUpdate(
     req.user._id,
-    { $addToSet: { patients: patientId } },
-    { new: true },
+    { $addToSet: { patients: patientId } }, // ensures no duplicates
+    { new: true }
   );
 
   const patient = await Patient.findByIdAndUpdate(
     patientId,
     { $addToSet: { doctors: req.user._id } },
-    { new: true },
+    { new: true }
   );
 
   if (!doctor || !patient)
@@ -121,7 +121,7 @@ exports.addPatientToDoctor = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     message: 'Patient added successfully',
-    data: { doctor },
+    data: { doctor }
   });
 });
 
@@ -132,13 +132,13 @@ exports.removePatientFromDoctor = catchAsync(async (req, res, next) => {
   const doctor = await Doctor.findByIdAndUpdate(
     req.user._id,
     { $pull: { patients: patientId } },
-    { new: true },
+    { new: true }
   );
 
   const patient = await Patient.findByIdAndUpdate(
     patientId,
     { $pull: { doctors: req.user._id } },
-    { new: true },
+    { new: true }
   );
 
   if (!doctor || !patient)
@@ -146,7 +146,7 @@ exports.removePatientFromDoctor = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Patient removed successfully',
+    message: 'Patient removed successfully'
   });
 });
 
@@ -154,7 +154,7 @@ exports.removePatientFromDoctor = catchAsync(async (req, res, next) => {
 exports.getMyPatients = catchAsync(async (req, res, next) => {
   const doctor = await Doctor.findById(req.user._id).populate(
     'patients',
-    'name email phone patientDisease',
+    'name email phone patientDisease'
   );
 
   if (!doctor) return next(new AppError('Doctor not found', 404));
@@ -162,6 +162,6 @@ exports.getMyPatients = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     results: doctor.patients.length,
-    data: { patients: doctor.patients },
+    data: { patients: doctor.patients }
   });
 });
