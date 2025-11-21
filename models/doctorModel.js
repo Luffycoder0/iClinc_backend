@@ -25,7 +25,6 @@ const doctorSchema = new mongoose.Schema({
   },
   gender: {
     type: String,
-    required: true,
     enum: ['Male', 'Female']
   },
   email: {
@@ -64,8 +63,7 @@ const doctorSchema = new mongoose.Schema({
     default: 'doctor'
   },
   address: {
-    type: String,
-    required: [true, 'Provide your address']
+    type: String
   },
   rate: {
     type: Number,

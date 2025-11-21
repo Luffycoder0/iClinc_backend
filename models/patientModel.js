@@ -15,8 +15,7 @@ const patientSchema = new mongoose.Schema({
     validate: [validator.isEmail, 'Please provide a valid email']
   },
   address: {
-    type: String,
-    required: [true, 'Please provide your address']
+    type: String
   },
   phone: {
     type: String,
@@ -30,9 +29,7 @@ const patientSchema = new mongoose.Schema({
     }
   },
   gender: {
-    type: String,
-    required: true,
-    enum: ['Male', 'Female']
+    type: String
   },
   patientDisease: String,
   password: {
