@@ -115,12 +115,11 @@ exports.addDoctorToPatient = catchAsync(async (req, res, next) => {
     return next(new AppError('Doctor already assigned to this patient', 400));
   }
 
-  // Add doctor to patient list and patient to doctor list
   patient.doctors.push(doctorId);
   doctor.patients.push(patient._id);
 
-  await patient.save();
-  await doctor.save();
+  await patient.save({ validateBeforeSave: false });
+  await doctor.save({ validateBeforeSave: false });
 
   res.status(200).json({
     status: 'success',
