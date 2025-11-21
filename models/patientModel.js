@@ -14,6 +14,10 @@ const patientSchema = new mongoose.Schema({
     lowercase: true,
     validate: [validator.isEmail, 'Please provide a valid email']
   },
+  address: {
+    type: String,
+    required: [true, 'Please provide your address']
+  },
   phone: {
     type: String,
     required: [true, 'Please provide your phone number']

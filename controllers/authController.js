@@ -34,6 +34,8 @@ exports.signupPatient = catchAsync(async (req, res, next) => {
     email: req.body.email,
     coName: req.body.coName,
     nationalID: req.body.nationalID,
+    gender: req.body.gender,
+    address: req.body.address,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm
   });
@@ -48,6 +50,8 @@ exports.signupDoctor = catchAsync(async (req, res, next) => {
     email: req.body.email,
     phone: req.body.phone,
     nationalID: req.body.nationalID,
+    gender: req.body.gender,
+    address: req.body.address,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm
   });
@@ -75,7 +79,6 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!user || !(await user.correctPassword(password, user.password)))
     return next(new AppError('Incorrect email or password', 401));
 
-  // إضافة الـ role للـ user object
   user.role = userRole;
 
   createSendToken(user, 200, res);
@@ -93,7 +96,6 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-  // البحث عن المستخدم مع تحديد الـ role
   let currentUser;
   let userRole;
 
@@ -127,7 +129,6 @@ exports.protect = catchAsync(async (req, res, next) => {
     }
   }
 
-  // إضافة الـ role بشكل صريح
   req.user = currentUser;
   req.user.role = userRole;
 

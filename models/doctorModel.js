@@ -23,6 +23,11 @@ const doctorSchema = new mongoose.Schema({
       message: 'National ID must be 14 digits'
     }
   },
+  gender: {
+    type: String,
+    required: true,
+    enum: ['Male', 'Female']
+  },
   email: {
     type: String,
     required: [true, 'Provide a valid email address'],
@@ -58,16 +63,9 @@ const doctorSchema = new mongoose.Schema({
     type: String,
     default: 'doctor'
   },
-  location: {
-    type: {
-      type: String,
-      enum: ['Point'],
-      default: 'Point'
-    },
-    coordinates: {
-      type: [Number],
-      default: [0, 0]
-    }
+  address: {
+    type: String,
+    required: [true, 'Provide your address']
   },
   rate: {
     type: Number,
