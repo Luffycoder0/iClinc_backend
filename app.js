@@ -38,6 +38,7 @@ app.use('/api', limiter);
 
 app.use(express.json({ limit: '10kb' }));
 
+// CORS
 app.use(
   cors({
     origin: function (origin, callback) {
